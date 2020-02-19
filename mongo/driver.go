@@ -2,7 +2,6 @@ package mongo
 
 import (
 	"context"
-
 	"github.com/marrbor/golog"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -38,4 +37,22 @@ func NewDriver(url string) (*Driver, error) {
 		return nil, err
 	}
 	return &Driver{url: url, client: cl,}, nil
+}
+
+// Save saves given one entity into db.
+func Save(db, collection, url string, ctx context.Context, data interface{}) error {
+	md, err := NewDriver(url)
+	if err != nil {
+		return err
+	}
+	if err := md.Start(ctx); err != nil {
+		return err
+	}
+	defer md.Stop(ctx)
+	col := md.Collection(db, collection)
+	_, err = col.InsertOne(ctx, data)
+	if err != nil {
+		return err
+	}
+	return nil
 }
